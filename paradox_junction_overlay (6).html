@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paradox Junction Easter Egg Overlay</title>
+  <style>
+    :root {
+      --panel-bg: rgba(7, 10, 16, 0.74);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --panel-shadow: rgba(0, 0, 0, 0.62);
+      --text: rgba(255,255,255,0.96);
+      --muted: rgba(228,235,248,0.82);
+      --soft: rgba(255,255,255,0.08);
+      --accent: #82c8ff;
+      --accent-2: #b88cff;
+      --danger: #ff7d7d;
+      --success: #90f2c1;
+      --gold: #ffd98a;
+      --w: 460px;
+      --radius: 26px;
+      --blur: 22px;
+      --font: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: var(--font);
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-start;
+      padding: 18px;
+      user-select: none;
+    }
+
+    .overlay {
+      width: min(var(--w), calc(100vw - 36px));
+      height: calc(100vh - 36px);
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius);
+      background: rgba(6, 10, 16, 0.78);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 24px 60px var(--panel-shadow);
+      backdrop-filter: blur(var(--blur)) saturate(125%);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(125%);
+      overflow: hidden;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .overlay::before,
+    .overlay::after {
+      content: "";
+      position: absolute;
+      inset: auto;
+      border-radius: 999px;
+      filter: blur(50px);
+      opacity: 0.28;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .overlay::before {
+      width: 190px;
+      height: 190px;
+      top: -54px;
+      right: -48px;
+      background: radial-gradient(circle, var(--accent), transparent 70%);
+    }
+
+    .overlay::after {
+      width: 180px;
+      height: 180px;
+      bottom: -58px;
+      left: -48px;
+      background: radial-gradient(circle, var(--accent-2), transparent 70%);
+    }
+
+    .inner {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: rgba(6, 10, 16, 0.58);
+    }
+
+    .topbar {
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(6, 10, 16, 0.64);
+    }
+
+    .eyebrow {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+
+    .pill {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .pill.active {
+      color: #0a1320;
+      background: linear-gradient(135deg, var(--accent), #e6f4ff);
+      border-color: transparent;
+      font-weight: 700;
+    }
+
+    .title {
+      font-size: 26px;
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0 0 6px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .progress-wrap {
+      padding: 14px 18px 10px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .progress {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 18px rgba(130,200,255,0.35);
+      transition: width 220ms ease;
+    }
+
+    .content {
+      flex: 1;
+      min-height: 0;
+      padding: 8px 12px 18px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 22px;
+      padding: 16px;
+      box-shadow: none;
+    }
+
+    .step-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .step-title {
+      font-size: 24px;
+      line-height: 1.05;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin: 0 0 10px;
+    }
+
+    .objective {
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin: 0 0 10px;
+    }
+
+    ul.clean {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 9px;
+    }
+
+    ul.clean li {
+      position: relative;
+      padding-left: 18px;
+      color: var(--text);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    ul.clean li::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--accent), var(--accent-2));
+      position: absolute;
+      left: 0;
+      top: 0.5em;
+      transform: translateY(-50%);
+      box-shadow: 0 0 12px rgba(130,200,255,0.4);
+    }
+
+    .tipbox {
+      border-left: 3px solid rgba(255,217,138,0.85);
+      background: rgba(255,217,138,0.08);
+    }
+
+    .tipbox .section-title {
+      color: var(--gold);
+    }
+
+    .warning {
+      border-left: 3px solid rgba(255,125,125,0.9);
+      background: rgba(255,125,125,0.08);
+    }
+
+    .warning .section-title {
+      color: #ffb3b3;
+    }
+
+    .footer {
+      padding: 14px 18px 18px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      background: rgba(6, 10, 16, 0.72);
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      outline: none;
+      cursor: pointer;
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 11px 14px;
+      font: inherit;
+      font-weight: 700;
+      transition: transform 120ms ease, background 140ms ease, opacity 140ms ease;
+      box-shadow: none;
+    }
+
+    button:hover { background: rgba(255,255,255,0.14); }
+    button:active { transform: translateY(1px) scale(0.995); }
+
+    .nav-btn {
+      min-width: 54px;
+      font-size: 16px;
+    }
+
+    .primary {
+      background: linear-gradient(135deg, rgba(130,200,255,0.95), rgba(184,140,255,0.95));
+      color: #08101a;
+      border-color: transparent;
+      font-weight: 800;
+    }
+
+    .legend {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .tiny {
+      font-size: 11px;
+      color: rgba(235,240,255,0.58);
+      line-height: 1.35;
+      margin-top: 6px;
+    }
+
+    .hidden { display: none !important; }
+
+    .content::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .content::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.04);
+      border-radius: 999px;
+    }
+
+    .content::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.16);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    .content::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,255,255,0.24);
+      background-clip: padding-box;
+    }
+
+    @media (max-width: 540px) {
+      body { padding: 10px; }
+      .overlay {
+        width: calc(100vw - 20px);
+        height: calc(100vh - 20px);
+        border-radius: 22px;
+      }
+      .footer {
+        grid-template-columns: 1fr;
+      }
+      .controls { justify-content: stretch; }
+      .controls button { flex: 1; }
+      .title { font-size: 22px; }
+      .step-title { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <div class="inner">
+      <div class="topbar">
+        <div class="eyebrow">
+          <div class="pill active">Black Ops 7</div>
+          <div class="pill">Paradox Junction</div>
+          <div class="pill">Main EE Overlay</div>
+        </div>
+        <h1 class="title">Paradox Junction Easter Egg</h1>
+        <p class="subtitle">Transparent step overlay for Nuketown / Paradox Junction. Scroll inside the panel if a step runs long, then use ◀ ▶ to move through the quest.</p>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="stageName">Prep</span>
+          <span id="stepCounter">Step 1 / 17</span>
+        </div>
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
+
+      <div class="content">
+        <div class="card">
+          <div class="step-label" id="stepLabel">Step 1</div>
+          <h2 class="step-title" id="stepTitle">Unlock Pack-a-Punch</h2>
+          <p class="objective" id="objective"></p>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Do this</div>
+          <ul class="clean" id="details"></ul>
+        </div>
+
+        <div class="card tipbox">
+          <div class="section-title">Fast tip</div>
+          <ul class="clean" id="tips"></ul>
+        </div>
+
+        <div class="card warning" id="warningCard">
+          <div class="section-title">Watch for</div>
+          <ul class="clean" id="warnings"></ul>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="legend">
+          Scroll = read more • ◀ / ▶ = previous / next step
+          <div class="tiny">Progress is saved in your browser for this overlay.</div>
+        </div>
+        <div class="controls">
+          <button class="nav-btn" id="prevBtn" aria-label="Previous step">◀</button>
+          <button class="nav-btn primary" id="nextBtn" aria-label="Next step">▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      {
+        stage: "Prep",
+        title: "Unlock Pack-a-Punch",
+        objective: "Open the past version of Nuketown and spawn Pack-a-Punch so the real quest can start.",
+        details: [
+          "Grab the truck keys from the zombie corpse in the eastern part of the map.",
+          "Keep playing until the Rad-Hound / dog round teleports you to the past.",
+          "Move the oil truck with the keys, go south, and shoot all four storm points.",
+          "Clear the zombies that spawn from the storm until the storm breaks and Pack-a-Punch appears."
+        ],
+        tips: [
+          "Save a zombie before the storm if you want a calmer setup window.",
+          "Try to finish this early so later time-travel steps feel smoother."
+        ],
+        warnings: [
+          "The storm will not fully progress if you ignore the zombies coming out of it."
+        ]
+      },
+      {
+        stage: "Wonder Weapon",
+        title: "Get the Barrel",
+        objective: "Feed future-map cysts until one drops the Blundergat Barrel.",
+        details: [
+          "In destroyed Nuketown, lure zombies to the yellow cysts stuck on the walls.",
+          "Kill about ten zombies near a cyst so it bursts and drops loot.",
+          "Repeat at other cysts until one drops the Barrel."
+        ],
+        tips: [
+          "Check the southern area too—there are extra cysts there.",
+          "This only works in the future map, not the past."
+        ],
+        warnings: [
+          "Do not waste time searching the past version for cysts—they do not spawn there."
+        ]
+      },
+      {
+        stage: "Wonder Weapon",
+        title: "Get the Hammer",
+        objective: "Create acid, mark all past mannequins, then collect the Hammer in the future.",
+        details: [
+          "In the past yellow house, grab Sealant from the upstairs bookshelf.",
+          "In the future yellow house, grab the SO3 vial from the upstairs desk.",
+          "Fill the vial at the green house sink in the future.",
+          "Go back to the past and use the acid on all 12 mannequins with heads.",
+          "Return to the future and check those mannequin spots—one now has the Hammer."
+        ],
+        tips: [
+          "A single vial only covers a few mannequins, so expect refill trips.",
+          "In co-op, everyone should fill their own vial to speed this up."
+        ],
+        warnings: [
+          "If you lose track of mannequin count, slow down and re-check the full map before progressing rounds."
+        ]
+      },
+      {
+        stage: "Wonder Weapon",
+        title: "Get the Stock + Build Blundergat",
+        objective: "Find the correct corrupted wall, break it in the past, then assemble the weapon.",
+        details: [
+          "In the future, inspect the three black corrupted walls and listen for the one with the distinct sound cue.",
+          "Go to that same wall in the past and throw a Semtex on it.",
+          "Return to the future and collect the Stock from the broken wall.",
+          "Build the Blundergat at the truck bench in the middle of town."
+        ],
+        tips: [
+          "Audio matters here—pause your movement and listen carefully near each wall.",
+          "Have Semtex ready before you swap time periods."
+        ],
+        warnings: [
+          "Using Semtex on the wrong wall wastes time and can snowball the round."
+        ]
+      },
+      {
+        stage: "Upgrade",
+        title: "Upgrade to Sundergat",
+        objective: "Feed the truck with three blue-aura Tortured Zombies from fire tornado spawns.",
+        details: [
+          "Start rounds in destroyed Nuketown and look for the fire-tornado zombie spawn; only one can appear per round.",
+          "Get close so it drops down with a blue aura and follows you.",
+          "Thin the horde—if it absorbs too many regular zombies it can fail out.",
+          "Lure it to the truck bench and kill it there with the Blundergat.",
+          "Repeat three rounds, place the weapon into the past workbench, then pick up the Sundergat from the future workbench."
+        ],
+        tips: [
+          "Do this while handling other mid-quest steps so you are not waiting on rounds later.",
+          "Backyards and the southern alley are common tornado spawn areas."
+        ],
+        warnings: [
+          "Do not drag a full train into the Tortured Zombie; too many absorbed zombies can ruin the cycle."
+        ]
+      },
+      {
+        stage: "Toy Box Chain",
+        title: "Get the Goggles",
+        objective: "Knock the goggles out near Pack-a-Punch and use a Wisp to bring them back in bounds.",
+        details: [
+          "In the future, shoot the speaker pole left of Pack-a-Punch.",
+          "The Goggles drop outside the fence.",
+          "Buy Wisp Tea, then shoot a zombie to summon a Wisp.",
+          "Let the Wisp bring the Goggles inward, then pick them up."
+        ],
+        tips: [
+          "Get this done while your Sundergat upgrade is already in progress.",
+          "Stand close enough to confirm the item actually drops before leaving."
+        ],
+        warnings: [
+          "No Wisp means no pickup—the item stays out of bounds."
+        ]
+      },
+      {
+        stage: "Toy Box Chain",
+        title: "Get the Headset",
+        objective: "Use Death Perception to find the hidden headset in one of three future-map spots.",
+        details: [
+          "Buy Death Perception first so you can see the item outline.",
+          "Check the Yellow House backyard.",
+          "Check inside the Green House.",
+          "Check the garbage bin area in front of the Green House.",
+          "Pick up the Headset once you find the correct spawn."
+        ],
+        tips: [
+          "This is a fast sweep step—clear one zombie and route all three spots cleanly.",
+          "Try to combine this with RC-XD scouting so you cut down on laps."
+        ],
+        warnings: [
+          "Without Death Perception, the Headset is easy to miss even if you are standing right next to it."
+        ]
+      },
+      {
+        stage: "Toy Box Chain",
+        title: "Activate the Cymbals",
+        objective: "Use the toy box and four-square chain to spawn cymbals, then escort them with Sundergat souls.",
+        details: [
+          "Take the Goggles and Headset to the blue toy box on Trinity Ave in the past.",
+          "Go to the future Green House backyard and find the white X.",
+          "Find the red ball, shoot it down, and roll it onto the white X.",
+          "Return to the past and start the four-square / pass-the-ball minigame.",
+          "Keep the ball inside the white lines until the timer ends.",
+          "When cymbals spawn, shoot them with the Sundergat and kill zombies near them so they travel to the toy box."
+        ],
+        tips: [
+          "Melee the ball only after each bounce; rhythm matters more than speed.",
+          "Two players makes this minigame much safer."
+        ],
+        warnings: [
+          "Leaving the white lines fails the pass-the-ball section and forces a reset timer."
+        ]
+      },
+      {
+        stage: "Swing Set Chain",
+        title: "Find an RC-XD Controller",
+        objective: "Grab any controller spawn so you can open the garage route for Chalk.",
+        details: [
+          "Check behind the Green House near the perk machine.",
+          "Check the Yellow House garage shelf.",
+          "Check the crate beside Pack-a-Punch.",
+          "Interact with the controller once found to start driving it."
+        ],
+        tips: [
+          "Memorize all three spots—the controller can move each attempt.",
+          "Clear nearby zombies before interacting so the RC route is safer."
+        ],
+        warnings: [
+          "If your RC timer expires, you must go re-find a controller."
+        ]
+      },
+      {
+        stage: "Swing Set Chain",
+        title: "Get the Chalk",
+        objective: "Drive the RC-XD through the ramps, blow the gas tank, and grab the Chalk.",
+        details: [
+          "Drive straight to the left ramp into the next area.",
+          "Use the second ramp and boost to jump the debris into the garage.",
+          "Detonate the RC-XD by the red gas tank to open the path.",
+          "Enter and collect the Chalk."
+        ],
+        tips: [
+          "Watch the battery meter—this is your timer.",
+          "Boost only when lined up or you can throw the whole run."
+        ],
+        warnings: [
+          "A failed jump means you need a fresh controller."
+        ]
+      },
+      {
+        stage: "Swing Set Chain",
+        title: "Activate the Swing Set",
+        objective: "Restore the swing, place Chalk, and trigger the twins scene.",
+        details: [
+          "In the past Yellow House backyard, shoot the swing and pick up the Swing Seat.",
+          "Return to the future Destroyed Yellow House backyard.",
+          "Attach the Swing Seat to the swing set.",
+          "Place the Chalk to trigger the twins cutscene.",
+          "Afterward, the nearby red toolbox in the garage becomes usable."
+        ],
+        tips: [
+          "This is one of the cleaner checkpoints in the run—use it to stabilize ammo and armor."
+        ],
+        warnings: [
+          "Do not forget the dropped Swing Seat in the past or the whole chain stalls."
+        ]
+      },
+      {
+        stage: "Fireplace Chain",
+        title: "Light the Fireplace",
+        objective: "Grow the strange tree, harvest the wood, and light the Yellow House fireplace.",
+        details: [
+          "After the twins scene, open the red toolbox in the Yellow House garage and take the seeds.",
+          "In the past, plant them by the hedge near southern Pack-a-Punch.",
+          "Kill zombies with the Blundergat by the shrub so it absorbs souls.",
+          "Return to the future and throw a Combat Axe at the grown tree three times for x3 Strange Firewood.",
+          "Place the wood into the Yellow House fireplace and ignite it with a Molotov."
+        ],
+        tips: [
+          "Stand close enough for Blundergat kills to feed the tree reliably.",
+          "Have Combat Axes and a Molotov ready before you start this chain."
+        ],
+        warnings: [
+          "Regular gun kills near the shrub can waste time—use the Blundergat as directed."
+        ]
+      },
+      {
+        stage: "Music Box Chain",
+        title: "Activate the Music Box",
+        objective: "Trigger hopscotch in the past, then escort the music box to the fireplace with Sundergat kills.",
+        details: [
+          "In future Trinity Ave, step on the large X near Der Wunderfizz.",
+          "Have another player activate the teleporter, or teleport immediately yourself if solo timing allows.",
+          "In the past, start hopscotch from 1 to 12, then back down, while avoiding the black spot.",
+          "When the music box appears, shoot it with the Sundergat.",
+          "Kill zombies near it with the Sundergat so it moves.",
+          "Escort it all the way to the Yellow House fireplace until the screen flashes white."
+        ],
+        tips: [
+          "This section is much smoother with one zombie saved.",
+          "Do not outrun the box—stay close enough to notice if it stalls."
+        ],
+        warnings: [
+          "Touching the wrong area in hopscotch can force a retry."
+        ]
+      },
+      {
+        stage: "Piano Chain",
+        title: "Activate the Piano",
+        objective: "Use Brain Rot on the piano teacher, read the blinking note order, then play the fixed piano solution.",
+        details: [
+          "Put Brain Rot on your gun.",
+          "In future Destroyed Nuketown, shoot the Piano Teacher zombie in the Green House backyard.",
+          "Follow her to the piano, then quickly return to the past so she survives the event.",
+          "Back in the future, find the eight blue notes and interact with them in blinking order from 1 through 8.",
+          "Go to the past piano once it glows yellow and input the solution: A-F-G-E-F-E-C-E."
+        ],
+        tips: [
+          "If you prefer keypad memory, many guides also write this as the same repeated fixed sequence for every run.",
+          "Watch the teacher closely—if she dies, you lose the round and have to retry later."
+        ],
+        warnings: [
+          "You can only use the piano while it glows yellow."
+        ]
+      },
+      {
+        stage: "Golden Note Chain",
+        title: "Get the Bouncing Ball + Golden Note",
+        objective: "Shoot the out-of-bounds zombies, win the bounce game four times, then escort the Golden Note.",
+        details: [
+          "In the future, shoot the three floating zombies outside the fences—backyards are good places to check.",
+          "Go to the southern street truck area and confirm the new X with three floating orbs.",
+          "Return to the past and interact with the floating ball in the matching floor circle.",
+          "Kill all three launched zombies in mid-air before they touch the ground; do this successfully four times.",
+          "When the Golden Note spawns, kill zombies near it with the Sundergat so it travels to the piano."
+        ],
+        tips: [
+          "The charged Sundergat shot is strong here because of the bounce and damage.",
+          "Have teammates ready to help cover different airborne zombie lanes in co-op."
+        ],
+        warnings: [
+          "If a zombie lands, if you shoot too early, or if you leave the circle, the minigame fails."
+        ]
+      },
+      {
+        stage: "Final Trigger",
+        title: "Set the Doomsday Clock to 0",
+        objective: "Align the clock, time the teleporter shot, then follow the twins to the boss start orb.",
+        details: [
+          "In the future, stand on the buses and shoot the red and white clock hands on top of the Green House.",
+          "Set the red hand to 2 first, then the white hand to 1, then bring both to 0.",
+          "Activate the teleporter and shoot the red hand again just before you are transported to the past.",
+          "If it worked, unique music plays and the twins appear at the piano.",
+          "Follow the twins from piano to toy box to fireplace to swing set.",
+          "At the swing set, interact with the gold orb only when you are fully boss-ready."
+        ],
+        tips: [
+          "In co-op, let one player hold the teleporter while another hard-scopes the red hand.",
+          "This is your final shopping window—top off armor, perks, ammo, tacticals, and self-revives first."
+        ],
+        warnings: [
+          "Mistiming the last red-hand shot means redoing the trigger instead of starting the boss."
+        ]
+      },
+      {
+        stage: "Boss Fight",
+        title: "Defeat the Dark Heart",
+        objective: "Break immunity mechanics across three phases, then dump damage whenever the core opens.",
+        details: [
+          "Interact with the glowing orb to enter the fight; squads may need a vote.",
+          "The Dark Heart has three phases.",
+          "Each phase includes immunity tied to black blobs you need to destroy or a Tortured Zombie you need to kill.",
+          "Clear the mechanic fast, then focus damage on the exposed weak points / cracks in the heart.",
+          "Manage space, save movement tools, and expect zombie pressure throughout the fight."
+        ],
+        tips: [
+          "Do not tunnel vision the boss while an immunity target is still active.",
+          "Use the arena downtime between damage windows to reload, plate, and reset your positioning."
+        ],
+        warnings: [
+          "Starting the orb without full prep is the easiest way to throw the run."
+        ]
+      }
+    ];
+
+    const els = {
+      stepLabel: document.getElementById('stepLabel'),
+      stepTitle: document.getElementById('stepTitle'),
+      objective: document.getElementById('objective'),
+      details: document.getElementById('details'),
+      tips: document.getElementById('tips'),
+      warnings: document.getElementById('warnings'),
+      warningCard: document.getElementById('warningCard'),
+      stageName: document.getElementById('stageName'),
+      stepCounter: document.getElementById('stepCounter'),
+      progressBar: document.getElementById('progressBar'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn')
+    };
+
+    const STORAGE_KEY = 'paradoxJunctionOverlayStep';
+    let stepIndex = Math.max(0, Math.min(steps.length - 1, Number(localStorage.getItem(STORAGE_KEY) || 0)));
+
+    function fillList(target, items) {
+      target.innerHTML = '';
+      items.forEach(text => {
+        const li = document.createElement('li');
+        li.textContent = text;
+        target.appendChild(li);
+      });
+    }
+
+    function render() {
+      const step = steps[stepIndex];
+      els.stepLabel.textContent = `Step ${stepIndex + 1}`;
+      els.stepTitle.textContent = step.title;
+      els.objective.textContent = step.objective;
+      els.stageName.textContent = step.stage;
+      els.stepCounter.textContent = `Step ${stepIndex + 1} / ${steps.length}`;
+      els.progressBar.style.width = `${((stepIndex + 1) / steps.length) * 100}%`;
+      fillList(els.details, step.details);
+      fillList(els.tips, step.tips || []);
+      if (step.warnings && step.warnings.length) {
+        fillList(els.warnings, step.warnings);
+        els.warningCard.classList.remove('hidden');
+      } else {
+        els.warningCard.classList.add('hidden');
+      }
+      localStorage.setItem(STORAGE_KEY, String(stepIndex));
+      els.prevBtn.disabled = stepIndex === 0;
+      els.nextBtn.disabled = stepIndex === steps.length - 1;
+      els.prevBtn.style.opacity = stepIndex === 0 ? '0.45' : '1';
+      els.nextBtn.style.opacity = stepIndex === steps.length - 1 ? '0.45' : '1';
+      document.title = `Paradox Junction Overlay — Step ${stepIndex + 1}`;
+      document.querySelector('.content').scrollTop = 0;
+    }
+
+    function next() {
+      if (stepIndex < steps.length - 1) {
+        stepIndex += 1;
+        render();
+      }
+    }
+
+    function prev() {
+      if (stepIndex > 0) {
+        stepIndex -= 1;
+        render();
+      }
+    }
+
+    els.nextBtn.addEventListener('click', next);
+    els.prevBtn.addEventListener('click', prev);
+
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowRight', 'PageDown', 'd', 'D'].includes(e.key)) {
+        e.preventDefault();
+        next();
+      } else if (['ArrowLeft', 'PageUp', 'a', 'A'].includes(e.key)) {
+        e.preventDefault();
+        prev();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
